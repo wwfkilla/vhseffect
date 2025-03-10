@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHS Effect Studio</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #00ccff;
+            text-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+        }
+
+        #upload {
+            margin: 20px 0;
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #00ccff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #upload:hover {
+            background-color: #00ccff;
+            color: #1a1a1a;
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
+        }
+
+        #mediaContainer {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #252525;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 1200px;
+        }
+
+        #outputCanvas {
+            border: 2px solid #444;
+            border-radius: 5px;
+            background-color: #000;
+            margin-right: 20px;
+            width: 640px;
+            height: 480px;
+        }
+
+        .controls {
+            background-color: #252525;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .controls label {
+            display: block;
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #bbb;
+        }
+
+        .controls input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+            background: #333;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.2s ease;
+        }
+
+        .controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00ccff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+        }
+
+        .controls input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #00ccff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+            border: none;
+        }
+
+        .controls input[type="range"]::-ms-thumb {
+            width: 20px;
+            height: 20px;
+            background: #00ccff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+            border: none;
+        }
+
+        .controls input[type="range"]:hover {
+            background: #444;
+        }
+
+        .download-buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .download-buttons button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #00ccff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-buttons button:hover {
+            background-color: #00ccff;
+            color: #1a1a1a;
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
+        }
+
+        .download-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #666;
+        }
+
+        @media (max-width: 800px) {
+            #mediaContainer {
+                flex-direction: column;
+                max-width: 600px;
+            }
+            #outputCanvas {
+                margin-right: 0;
+                margin-bottom: 20px;
+                width: 100%;
+                height: 360px;
+            }
+            .controls {
+                max-width: 100%;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>VHS Effect Studio</h1>
+    <input type="file" id="upload" accept="image/*, video/*">
+    <div id="mediaContainer">
+        <canvas id="outputCanvas"></canvas>
+        <div class="controls">
+            <label>Distortion: <input type="range" id="distortion" min="0" max="0.1" step="0.001" value="0.005"></label>
+            <label>Scanlines: <input type="range" id="scanlines" min="0" max="1" step="0.01" value="0.22"></label>
+            <label>Vertical Sync: <input type="range" id="verticalSync" min="0" max="1" step="0.01" value="0.15"></label>
+            <label>Wave Speed: <input type="range" id="waveIntensity" min="0" max="0.05" step="0.001" value="0.008"></label>
+            <label>Line Sync: <input type="range" id="lineSync" min="0" max="1" step="0.01" value="0.1"></label>
+            <label>Bars: <input type="range" id="bars" min="0" max="1" step="0.01" value="0.2"></label>
+            <label>Direction Blur: <input type="range" id="directionBlur" min="0" max="0.5" step="0.01" value="0.1"></label>
+            <label>Gaussian Blur: <input type="range" id="gaussianBlur" min="0" max="1" step="0.01" value="0.2"></label>
+            <label>Chromatic Aberration: <input type="range" id="chromaticAberration" min="0" max="0.01" step="0.001" value="0.005"></label>
+            <div class="download-buttons">
+                <button id="downloadPng" disabled>Download PNG</button>
+                <button id="recordMp4" disabled>Start Recording MP4</button>
+            </div>
+        </div>
+    </div>
+    <script src="Seriously.js-master/seriously.js"></script>
+    <script src="Seriously.js-master/effects/seriously.tvglitch.js"></script>
+    <script src="Seriously.js-master/effects/seriously.directionblur.js"></script>
+    <script src="Seriously.js-master/effects/seriously.blur.js"></script>
+    <script src="Seriously.js-master/effects/seriously.chromaticaberration.js"></script>
+    
+    <script>
+        let mediaType = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        function calculateScaledDimensions(width, height, targetWidth = 640, targetHeight = 480) {
+            const aspectRatio = width / height;
+            let newWidth, newHeight;
+
+            if (aspectRatio > targetWidth / targetHeight) {
+                newWidth = targetWidth;
+                newHeight = Math.round(targetWidth / aspectRatio);
+            } else {
+                newHeight = targetHeight;
+                newWidth = Math.round(targetHeight * aspectRatio);
+            }
+
+            const offsetX = Math.round((targetWidth - newWidth) / 2);
+            const offsetY = Math.round((targetHeight - newHeight) / 2);
+
+            return { width: newWidth, height: newHeight, offsetX, offsetY };
+        }
+
+        document.getElementById('upload').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            console.log('File type:', file.type);
+            mediaType = file.type.startsWith('image/') ? 'image' : 'video';
+            const url = URL.createObjectURL(file);
+            if (mediaType === 'image') {
+                loadImage(url);
+                document.getElementById('downloadPng').disabled = false;
+                document.getElementById('recordMp4').disabled = true;
+                console.log('Image loaded, PNG enabled, MP4 disabled');
+            } else {
+                loadVideo(url);
+                document.getElementById('downloadPng').disabled = true;
+                document.getElementById('recordMp4').disabled = false;
+                console.log('Video loaded, PNG disabled, MP4 enabled');
+            }
+            document.getElementById('mediaContainer').style.display = 'flex';
+        }
+
+        function loadImage(url) {
+            const img = new Image();
+            img.onload = function() {
+                const outputCanvas = document.getElementById('outputCanvas');
+                outputCanvas.width = 640;
+                outputCanvas.height = 480;
+
+                const { width, height, offsetX, offsetY } = calculateScaledDimensions(img.width, img.height);
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 640;
+                tempCanvas.height = 480;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, 640, 480);
+                ctx.drawImage(img, offsetX, offsetY, width, height);
+
+                applyVHSEffect(tempCanvas, 'image');
+            };
+            img.src = url;
+        }
+
+        function loadVideo(url) {
+            const video = document.createElement('video');
+            video.src = url;
+            video.loop = true; // Enable looping
+            video.onloadedmetadata = function() {
+                const outputCanvas = document.getElementById('outputCanvas');
+                outputCanvas.width = 640;
+                outputCanvas.height = 480;
+
+                const { width, height, offsetX, offsetY } = calculateScaledDimensions(video.videoWidth, video.videoHeight);
+                video.width = width;
+                video.height = height;
+
+                applyVHSEffect(video, 'video');
+            };
+            video.load();
+        }
+
+        function applyVHSEffect(source, type) {
+            if (!window.Seriously) {
+                console.error('Seriously.js failed to load');
+                alert('Seriously.js is not supported. Try Chrome or Firefox, or check your browser settings.');
+                return;
+            }
+            console.log('Applying effect to:', source);
+            const seriously = new Seriously();
+            if (!seriously) {
+                console.error('Seriously initialization failed');
+                return;
+            }
+            const sourceNode = seriously.source(source);
+            if (!sourceNode) {
+                console.error('Failed to create source node from input');
+                return;
+            }
+            const target = seriously.target('#outputCanvas');
+            if (!target) {
+                console.error('Failed to set output canvas target');
+                return;
+            }
+
+            const tvGlitch = seriously.effect('tvglitch');
+            if (!tvGlitch) {
+                console.error('TV Glitch effect not available');
+                return;
+            }
+            tvGlitch.source = sourceNode;
+            tvGlitch.distortion = 0.005;
+            tvGlitch.scanlines = 0.22;
+            tvGlitch.verticalSync = 0.15;
+            tvGlitch.lineSync = 0.1;
+            tvGlitch.bars = 0.2;
+            tvGlitch.time = 0;
+
+            const directionBlur = seriously.effect('directionblur');
+            if (!directionBlur) {
+                console.error('Direction Blur effect not available');
+                return;
+            }
+            directionBlur.source = tvGlitch;
+            directionBlur.amount = 0.1;
+            directionBlur.angle = Math.PI / 4;
+
+            const gaussianBlur = seriously.effect('blur');
+            if (!gaussianBlur) {
+                console.error('Gaussian Blur effect not available');
+                return;
+            }
+            gaussianBlur.source = directionBlur;
+            gaussianBlur.amount = 0.2;
+
+            const chromaticAberration = seriously.effect('chromaticaberration');
+            if (!chromaticAberration) {
+                console.error('Chromatic Aberration effect not available');
+                target.source = gaussianBlur;
+            } else {
+                chromaticAberration.source = gaussianBlur;
+                chromaticAberration.amount = 0.005;
+                target.source = chromaticAberration;
+            }
+
+            let waveSpeed = 0.008;
+
+            document.getElementById('distortion').addEventListener('input', (e) => {
+                tvGlitch.distortion = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('scanlines').addEventListener('input', (e) => {
+                tvGlitch.scanlines = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('verticalSync').addEventListener('input', (e) => {
+                tvGlitch.verticalSync = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('waveIntensity').addEventListener('input', (e) => {
+                waveSpeed = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('lineSync').addEventListener('input', (e) => {
+                tvGlitch.lineSync = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('bars').addEventListener('input', (e) => {
+                tvGlitch.bars = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('directionBlur').addEventListener('input', (e) => {
+                directionBlur.amount = parseFloat(e.target.value);
+                seriously.render();
+            });
+            document.getElementById('gaussianBlur').addEventListener('input', (e) => {
+                gaussianBlur.amount = parseFloat(e.target.value);
+                seriously.render();
+            });
+            if (chromaticAberration) {
+                document.getElementById('chromaticAberration').addEventListener('input', (e) => {
+                    const amount = parseFloat(e.target.value);
+                    chromaticAberration.amount = amount;
+                    console.log('Chromatic aberration set to:', amount);
+                    setTimeout(() => seriously.render(), 0);
+                });
+            }
+
+            // PNG Download
+            document.getElementById('downloadPng').addEventListener('click', () => {
+                const canvas = document.getElementById('outputCanvas');
+                const link = document.createElement('a');
+                link.download = 'vhs-effect.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                console.log('PNG download triggered');
+            });
+
+            // MP4 Recording
+            const recordMp4Button = document.getElementById('recordMp4');
+            if (!window.MediaRecorder) {
+                console.error('MediaRecorder API not supported in this browser');
+                recordMp4Button.disabled = true;
+                recordMp4Button.textContent = 'Recording Not Supported';
+                return;
+            }
+
+            recordMp4Button.addEventListener('click', () => {
+                if (!isRecording) {
+                    startRecording();
+                    recordMp4Button.textContent = 'Stop Recording';
+                } else {
+                    stopRecording();
+                    recordMp4Button.textContent = 'Start Recording MP4';
+                }
+            });
+
+            function startRecording() {
+                isRecording = true;
+                recordedChunks = [];
+                const canvas = document.getElementById('outputCanvas');
+                const stream = canvas.captureStream(30); // 30 FPS
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' }); // Using WebM for reliability
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = 'vhs-effect.mp4'; // Named .mp4 for user convenience, though it's WebM
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    console.log('MP4 recording stopped and downloaded');
+                };
+
+                mediaRecorder.start();
+                console.log('Recording started');
+            }
+
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    console.log('Recording stopped');
+                }
+            }
+
+            seriously.go(function (err) {
+                if (err) {
+                    console.warn('Rendering issue detected:', err);
+                } else {
+                    console.log('Rendering started successfully');
+                }
+            });
+
+            if (type === 'video') {
+                source.play();
+                animateVideo(seriously, tvGlitch, () => waveSpeed);
+            } else {
+                animateImage(seriously, tvGlitch, () => waveSpeed);
+            }
+        }
+
+        function animateVideo(seriously, tvGlitch, getWaveSpeed) {
+            function render() {
+                tvGlitch.time += getWaveSpeed();
+                seriously.render();
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        function animateImage(seriously, tvGlitch, getWaveSpeed) {
+            let time = 0;
+            function render() {
+                tvGlitch.time = time;
+                time += getWaveSpeed();
+                seriously.render();
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+    </script>
+</body>
+</html>

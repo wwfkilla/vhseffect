@@ -1,0 +1,4 @@
+TVGLITCH:
+ - line sync slider
+ - bars slider
+ - gaussian blur or directional motion blur
